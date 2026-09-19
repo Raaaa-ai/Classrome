@@ -17,11 +17,17 @@ dataset = load_dataset("ylecun/mnist", split="test")
 if NUM_SAMPLES:
     dataset = dataset.select(range(min(NUM_SAMPLES, len(dataset))))
 
+from torchvision.transforms import Resize
+
+# 显式定义，ResNet‑50要求输入224×224
+resize_transform = Resize((224, 224))
+
 def collate_fn(batch):
-    images = [item["image"].convert("RGB") for item in batch]
+    images = [resize_transform(item["image"].convert("RGB")) for item in batch]
     labels = [item["label"] for item in batch]
     inputs = processor(images=images, return_tensors="pt")
     return inputs["pixel_values"], torch.tensor(labels)
+
 
 loader = DataLoader(dataset, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
